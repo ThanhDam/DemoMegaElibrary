@@ -1,6 +1,7 @@
 package com.elibrary.demo.controller;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -10,5 +11,10 @@ public class HomeController {
 	@RequestMapping(value= {"/","/index"}, method = RequestMethod.GET)
 	public String starter() {
 		return "index";
+	}
+	
+	@GetMapping("/admin/index")
+	public String adminStarter() {
+		return "admin/index";
 	}
 }
