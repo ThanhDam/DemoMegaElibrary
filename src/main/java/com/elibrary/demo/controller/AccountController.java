@@ -108,6 +108,9 @@ public class AccountController {
 		if(accountService.checkPassword(usForm.getPassword(), accLogin.getPassword()) &
 				accLogin.getValidFlag()!=2) {
 			saveUserLog(accLogin.getIdUser());
+			if(accLogin.getIdRole()==1) {
+				return "redirect:/admin/index";
+			}
 			return "redirect:/library";
 		}
 		model.addAttribute("error", errorLogin);
@@ -123,7 +126,7 @@ public class AccountController {
 		logs.setIdUser(idUser);
 		UserLogRepository logRepository = null;
 		logRepository.save(logs);
-		System.out.println("Save userLogs succesfull!");
+		LOGGER.getLogger("---------------Save userLogs succesfull!");
 	}
 	
 	/*
@@ -137,7 +140,7 @@ public class AccountController {
 			model.addAttribute("lstAccounts", lstAccounts);
 			return "admin/accountsmana";
 		}
-		return "redirect:/404";
+		return "redirect:/401";
 	}
 	
 	@GetMapping("/admin/accountmanager/{id}")
@@ -148,6 +151,17 @@ public class AccountController {
 			model.addAttribute("account", acc);
 			return "admin/accountsmana";
 		}
-		return "redirect:/404";
+		return "redirect:/401";
+	}
+	
+	@GetMapping("/admin/accountmanager")
+	protected String getAllAccountsActive(Model model) {
+		boolean isAdmin = accountService.checkAdminBySession(RequestContextHolder.currentRequestAttributes().getSessionId());
+		if(isAdmin) {
+			List<Accounts> lstAccounts = accountRepo.getAllActiveAccount();
+			model.addAttribute("lstAccounts", lstAccounts);
+			return "admin/accountsactive";
+		}
+		return "redirect:/401";
 	}
 }

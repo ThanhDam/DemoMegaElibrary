@@ -16,6 +16,9 @@ public interface EbookRepository extends JpaRepository<Ebooks, String>{
 	@Query("select e from Ebooks e where e.author like %?1")
 	List<Ebooks> findByAuthor(String author);
 	
+	@Query("select e from Ebooks e join Categories c on e.idCategory = c.idCategory where c.shortCode = ?1")
+	List<Ebooks> findByShortCodeCategory(String shortCode);
+	
 	@Query("select e from Ebooks e join Categories c on e.idCategory = c.idCategory "
 			+ "where c.description like %?1")
 	List<Ebooks> findByCategory(String category);

@@ -1,5 +1,7 @@
 package com.elibrary.demo.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,4 +20,7 @@ public interface AccountRepository extends JpaRepository<Accounts, String>{
 	@Query("select r from Roles r join Accounts a on r.idRole = a.idRole join UserLogs u on a.idUser = u.idUser "
 			+ "where u.sessionId = ?1")
 	Roles getRolesBySession(String sessionId);
+	
+	@Query("select a from accounts a where a.validFlag = 1")
+	List<Accounts> getAllActiveAccount();
 }

@@ -1,6 +1,7 @@
 package com.elibrary.demo.controller;
 
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -33,6 +35,9 @@ public class UserRequestController {
 	private UserRequestService requestService = new UserRequestServiceImpl();
 	
 	private AccountService accountService = new AccountServiceImpl();
+	
+	private final static Logger LOGGER = Logger.getLogger(UserRequestController.class.getName());
+	private final static String MESS_REPLY = "Please click this link to sign up: 127.0.0.1:8080/signup ";
 
 	@Value("${registration.error.mising}")
 	private String missingErr;
@@ -83,17 +88,38 @@ public class UserRequestController {
 			model.addAttribute("lstRequests", lstRequests);
 			return "admmin/requestmana";
 		}
-		return "redirect:/404";
+		return "redirect:/401";
 	}
 	
 	@GetMapping("/admin/requestmanager/{id}")
-	protected String replyRequest(@PathVariable String id, Model model) {
+	protected String loadRequest(@PathVariable String id, Model model) {
 		boolean isAdmin = accountService.checkAdminBySession(RequestContextHolder.currentRequestAttributes().getSessionId());
 		if(isAdmin) {
 			UserRequests request = requestRepo.findById(id).orElseThrow(NullPointerException::new);
 			model.addAttribute("request", request);
 			return "admin/requestsmana";
 		}
-		return "redirect:/404";
+		return "redirect:/401";
+	}
+	//button reply
+	@PatchMapping("/admin/requestmanager/{id}")
+	protected String replyRequest(@ModelAttribute("request") UserRequests req, @PathVariable("id") String id, Model model) {
+		boolean isAdmin = accountService.checkAdminBySession(RequestContextHolder.currentRequestAttributes().getSessionId());
+		if(isAdmin) {
+			UserRequests request = requestRepo.findById(id).orElseThrow(NullPointerException::new);
+			SendingController sending;
+			if(!request.getEmail().isEmpty()) {
+				sending = new SendingControllerEmailImpl();
+				sending.processSending(request.getEmail(), MESS_REPLY);
+			}else {
+				sending = new SendingControllerSmsImpl();
+				sending.processSending(request.getPhone(), MESS_REPLY);
+			}
+			LOGGER.getLogger("---------------Reply request success!");
+			request.setValidFlag(2);
+			requestRepo.save(request);
+			return "admin/requestsmana";
+		}
+		return "redirect:/401";
 	}
 }
